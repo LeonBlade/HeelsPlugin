@@ -1,0 +1,11 @@
+{
+  "Author": "LeonBlade",
+  "Name": "Heels Plugin",
+  "Description": "Offsets your character off the ground for when wearing heels.",
+  "InternalName": "heels",
+  "AssemblyVersion": "1.0.0.0",
+  "RepoUrl": "https://github.com/LeonBlade/HeelsPlugin",
+  "ApplicableVersion": "any",
+  "Tags": ["offset", "leonblade", "heels"],
+  "DalamudApiLevel": 1
+}
