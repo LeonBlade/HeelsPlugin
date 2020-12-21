@@ -39,7 +39,7 @@
     </Reference>
     <Reference Include="ImGui.NET">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\ImGui.NET.dll</HintPath>
-	  <Private>False</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ImGuiScene">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\ImGuiScene.dll</HintPath>
@@ -67,4 +67,7 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if $(ConfigurationName) == Release (powershell Compress-Archive -Path '$(ProjectDir)$(OutDir)$(TargetName).json', '$(ProjectDir)$(OutDir)$(TargetName).dll' -DestinationPath '$(ProjectDir)bin\$(TargetName).zip' -Force)</PostBuildEvent>
+  </PropertyGroup>
 </Project>
