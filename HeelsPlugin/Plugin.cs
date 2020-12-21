@@ -1,5 +1,6 @@
-﻿using Dalamud.Game.Command;
+using Dalamud.Game.Command;
 using Dalamud.Plugin;
+using System.Globalization;
 
 namespace HeelsPlugin
 {
@@ -44,7 +45,7 @@ namespace HeelsPlugin
             {
                 if (argArr[0].ToLower() == "off")
                     this.memory.offset = 0;
-                else if (float.TryParse(argArr[0], out float offset))
+                else if (float.TryParse(argArr[0], NumberStyles.Any, CultureInfo.InvariantCulture, out float offset))
                     this.memory.offset = offset;
             }
         }

@@ -13,8 +13,8 @@ namespace HeelsPlugin
 
 		public IntPtr playerMovementFunc;
 		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-		private delegate void PlayerMovementDelegate(IntPtr player, float x, float y, float z);
-		private readonly Hook<PlayerMovementDelegate> playerMovementHook;
+		public delegate void PlayerMovementDelegate(IntPtr player, float x, float y, float z, long u);
+		public readonly Hook<PlayerMovementDelegate> playerMovementHook;
 
 		public PluginMemory(DalamudPluginInterface pluginInterface)
 		{
@@ -22,7 +22,7 @@ namespace HeelsPlugin
 
 			this.playerMovementFunc = this.pi.TargetModuleScanner.ScanText("40 53 48 83 EC 20 F3 0F 11 89 A0");
 			this.playerMovementHook = new Hook<PlayerMovementDelegate>(
-				playerMovementFunc, 
+				playerMovementFunc,
 				new PlayerMovementDelegate(PlayerMovementHook)
 			);
 
@@ -49,17 +49,18 @@ namespace HeelsPlugin
 			}
 		}
 
-		private void PlayerMovementHook(IntPtr player, float x, float y, float z)
+		private void PlayerMovementHook(IntPtr player, float x, float y, float z, long u)
 		{
 			try
 			{
+			
 				if (this.pi.ClientState.Actors.Length > 0 && this.pi.ClientState.Actors[0].Address == player)
 					y += offset;
 			}
 			catch { }
 
 			// Call the original function.
-			this.playerMovementHook.Original(player, x, y, z);
+			this.playerMovementHook.Original(player, x, y, z, u);
 		}
 	}
 }
