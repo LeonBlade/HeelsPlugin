@@ -2,8 +2,7 @@
 This is a plugin to be used with the [FFXIVQuickLauncher](https://github.com/goatcorp/FFXIVQuickLauncher).
 
 ## Installing
-A prebuilt plugin can be found on the releases page. Download and unzip the contents of the release. Place the HeelsPlugin
-folder in this path `%appdata%\XIVLauncher\installedPlugins`.
+Please visit [this](https://github.com/LeonBlade/DalamudPlugins) for instructions on how to install the plugin.
 
 ## Usage
 To use the plugin, you must have launched the game via FFXIVQuickLauncher.
