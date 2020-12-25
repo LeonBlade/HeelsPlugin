@@ -43,10 +43,16 @@ namespace HeelsPlugin
             var argArr = args.Split(' ');
             if (argArr.Length > 0)
             {
+                // Remove the current offset first.
+                this.memory.SetPosition(-this.memory.offset);
+
                 if (argArr[0].ToLower() == "off")
                     this.memory.offset = 0;
                 else if (float.TryParse(argArr[0], NumberStyles.Any, CultureInfo.InvariantCulture, out float offset))
                     this.memory.offset = offset;
+
+                // Sets the initial offset on command.
+                this.memory.SetPosition(this.memory.offset);
             }
         }
     }

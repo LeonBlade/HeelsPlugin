@@ -65,16 +65,38 @@ namespace HeelsPlugin
 			try
 			{
 				if (this.pi.ClientState.Actors.Length > 0 && this.pi.ClientState.Actors[0].Address == player)
-				{
-					var ptr = Marshal.ReadInt64(player, 0xF0);
-					if (ptr == 0)
-						return;
-					var model = new IntPtr(ptr + 0x50);
-					var position = Marshal.PtrToStructure<Vector3>(model);
+					this.SetPosition(offset, player.ToInt64());
+			}
+			catch { }
+		}
 
+		/// <summary>
+		/// Sets the position of the Y for given actor.
+		/// </summary>
+		/// <param name="p_actor">Actor address</param>
+		/// <param name="offset">Offset in the Y direction</param>
+		public void SetPosition(float offset, long p_actor = 0)
+		{
+			try
+			{
+				var actor = IntPtr.Zero;
+				if (p_actor == 0)
+					actor = this.pi.ClientState.Actors[0].Address;
+				else
+					actor = new IntPtr(p_actor);
+
+				if (actor != IntPtr.Zero)
+				{
+					var modelPtr = Marshal.ReadInt64(actor, 0xF0);
+					if (modelPtr == 0)
+						return;
+					var positionPtr = new IntPtr(modelPtr + 0x50);
+					var position = Marshal.PtrToStructure<Vector3>(positionPtr);
+
+					// Offset the Y coordinate.
 					position.Y += offset;
 
-					Marshal.StructureToPtr(position, model, false);
+					Marshal.StructureToPtr(position, positionPtr, false);
 				}
 			}
 			catch { }
