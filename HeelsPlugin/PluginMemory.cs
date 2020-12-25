@@ -66,7 +66,10 @@ namespace HeelsPlugin
 			{
 				if (this.pi.ClientState.Actors.Length > 0 && this.pi.ClientState.Actors[0].Address == player)
 				{
-					var model = new IntPtr(Marshal.ReadInt64(player, 0xF0) + 0x50);
+					var ptr = Marshal.ReadInt64(player, 0xF0);
+					if (ptr == 0)
+						return;
+					var model = new IntPtr(ptr + 0x50);
 					var position = Marshal.PtrToStructure<Vector3>(model);
 
 					position.Y += offset;
