@@ -10,11 +10,17 @@ namespace HeelsPlugin
 		private readonly DalamudPluginInterface pi;
 
 		public float offset = 0;
+		private IntPtr actor = IntPtr.Zero;
 
 		public IntPtr playerMovementFunc;
 		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
 		public delegate void PlayerMovementDelegate(IntPtr player);
 		public readonly Hook<PlayerMovementDelegate> playerMovementHook;
+
+		public IntPtr gposeActorFunc;
+		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+		public delegate IntPtr GposeActorDelegate(IntPtr rcx, int rdx, int r8, IntPtr r9, long unknown);
+		public readonly Hook<GposeActorDelegate> gposeActorHook;
 
 		public PluginMemory(DalamudPluginInterface pluginInterface)
 		{
@@ -22,11 +28,18 @@ namespace HeelsPlugin
 
 			this.playerMovementFunc = this.pi.TargetModuleScanner.ScanText("48 89 5C 24 08 55 48 8B EC 48 83 EC 70 83 79 7C 00");
 			this.playerMovementHook = new Hook<PlayerMovementDelegate>(
-				playerMovementFunc,
-				new PlayerMovementDelegate(PlayerMovementHook)
+				this.playerMovementFunc,
+				new PlayerMovementDelegate(this.PlayerMovementHook)
+			);
+
+			this.gposeActorFunc = this.pi.TargetModuleScanner.ScanText("48 89 5C 24 10 48 89 6C 24 18 57 41 54 41 55 41 56 41 57 48 81 EC 80");
+			this.gposeActorHook = new Hook<GposeActorDelegate>(
+				this.gposeActorFunc,
+				new GposeActorDelegate(this.GposeActorHook)
 			);
 
 			this.playerMovementHook.Enable();
+			this.gposeActorHook.Enable();
 		}
 
 		/// <summary>
@@ -36,11 +49,16 @@ namespace HeelsPlugin
 		{
 			try
 			{
-				// Kill the hook assuming it's not already dead.
 				if (this.playerMovementHook != null)
 				{
 					this.playerMovementHook?.Disable();
 					this.playerMovementHook?.Dispose();
+				}
+
+				if (this.gposeActorHook != null)
+				{
+					this.gposeActorHook?.Disable();
+					this.gposeActorHook?.Dispose();
 				}
 			}
 			catch (Exception ex)
@@ -64,10 +82,24 @@ namespace HeelsPlugin
 
 			try
 			{
-				if (this.pi.ClientState.Actors.Length > 0 && this.pi.ClientState.Actors[0].Address == player)
+				if (this.actor == player)
 					this.SetPosition(offset, player.ToInt64());
 			}
 			catch { }
+		}
+
+		private IntPtr GposeActorHook(IntPtr rcx, int rdx, int r8, IntPtr r9, long unknown)
+		{
+			try
+			{
+				this.actor = new IntPtr(Marshal.ReadInt64(r9 + 8));
+			}
+			catch (Exception ex)
+			{
+				PluginLog.LogError(ex.Message);
+			}
+
+			return this.gposeActorHook.Original(rcx, rdx, r8, r9, unknown);
 		}
 
 		/// <summary>
