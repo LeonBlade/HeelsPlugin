@@ -32,7 +32,7 @@ namespace HeelsPlugin
 				new PlayerMovementDelegate(this.PlayerMovementHook)
 			);
 
-			this.gposeActorFunc = this.pi.TargetModuleScanner.ScanText("48 89 5C 24 10 48 89 6C 24 18 57 41 54 41 55 41 56 41 57 48 81 EC 80");
+			this.gposeActorFunc = this.pi.TargetModuleScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 DB 74 33");
 			this.gposeActorHook = new Hook<GposeActorDelegate>(
 				this.gposeActorFunc,
 				new GposeActorDelegate(this.GposeActorHook)
