@@ -1,29 +1,37 @@
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using System.Globalization;
+using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.IoC;
 
 namespace HeelsPlugin
 {
     public class Plugin : IDalamudPlugin
     {
-        public string Name => "Heels Plugin";
+
+	    [PluginService] public static CommandManager CommandManager { get; set; } = null!;
+	    [PluginService] public static DalamudPluginInterface pi { get; set; } = null!;
+	    [PluginService] public static SigScanner SigScanner { get; set; } = null!;
+	    [PluginService] public static ObjectTable ObjectTable { get; set; } = null!;
+
+	    public string Name => "Heels Plugin";
 
         private const string commandName = "/xlheels";
 
-        private DalamudPluginInterface pi;
         private Configuration configuration;
         private PluginMemory memory;
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        public Plugin()
         {
-            this.pi = pluginInterface;
 
-            this.configuration = this.pi.GetPluginConfig() as Configuration ?? new Configuration();
-            this.configuration.Initialize(this.pi);
+            this.configuration = pi.GetPluginConfig() as Configuration ?? new Configuration();
+            this.configuration.Initialize(pi);
 
-            this.memory = new PluginMemory(this.pi);
+            this.memory = new PluginMemory(pi);
 
-            this.pi.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
+            CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "Specify a float value to offset your character from the ground. Use 0 or off to disable."
             });
@@ -34,8 +42,7 @@ namespace HeelsPlugin
             // Dispose for stuff in Plugin Memory class.
             this.memory.Dispose();
 
-            this.pi.CommandManager.RemoveHandler(commandName);
-            this.pi.Dispose();
+            CommandManager.RemoveHandler(commandName);
         }
 
         private void OnCommand(string command, string args)
