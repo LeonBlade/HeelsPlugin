@@ -2,6 +2,7 @@
 using Dalamud.Plugin;
 using System;
 using System.Runtime.InteropServices;
+using Dalamud.Logging;
 
 namespace HeelsPlugin
 {
@@ -26,13 +27,13 @@ namespace HeelsPlugin
 		{
 			this.pi = pluginInterface;
 
-			this.playerMovementFunc = this.pi.TargetModuleScanner.ScanText("48 89 5C 24 08 55 48 8B EC 48 83 EC 70 83 79 7C 00");
+			this.playerMovementFunc = Plugin.SigScanner.ScanText("48 89 5C 24 08 55 48 8B EC 48 83 EC 70 83 79 7C 00");
 			this.playerMovementHook = new Hook<PlayerMovementDelegate>(
 				this.playerMovementFunc,
 				new PlayerMovementDelegate(this.PlayerMovementHook)
 			);
 
-			this.gposeActorFunc = this.pi.TargetModuleScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 DB 74 33");
+			this.gposeActorFunc = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 DB 74 33");
 			this.gposeActorHook = new Hook<GposeActorDelegate>(
 				this.gposeActorFunc,
 				new GposeActorDelegate(this.GposeActorHook)
@@ -113,7 +114,7 @@ namespace HeelsPlugin
 			{
 				var actor = IntPtr.Zero;
 				if (p_actor == 0)
-					actor = this.pi.ClientState.Actors[0].Address;
+					actor = Plugin.ObjectTable[0].Address;
 				else
 					actor = new IntPtr(p_actor);
 
