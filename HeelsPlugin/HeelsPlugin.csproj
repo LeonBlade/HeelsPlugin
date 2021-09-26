@@ -1,20 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<Version>1.0.4</Version>
 	<TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+	
+  <PropertyGroup>
+    <DalamudLibPath>$(AppData)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+  </PropertyGroup>
 
   <ItemGroup>
 	<Reference Include="Dalamud">
-	  <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.5.0\Dalamud.dll</HintPath>
+	  <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
 	  <Private>False</Private>
 	</Reference>
 	<Reference Include="ImGui.NET">
-	  <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.5.0\ImGui.NET.dll</HintPath>
+	  <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
 	  <Private>False</Private>
 	</Reference>
 	<Reference Include="ImGuiScene">
-	  <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.5.0\ImGuiScene.dll</HintPath>
+	  <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
 	  <Private>False</Private>
 	</Reference>
   </ItemGroup>
