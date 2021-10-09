@@ -6,12 +6,7 @@
   "AssemblyVersion": "1.0.5",
   "RepoUrl": "https://github.com/LeonBlade/HeelsPlugin",
   "ApplicableVersion": "any",
-  "Tags": [
-	"heels",
-	"high heels",
-	"height",
-	"offset",
-	"leonblade"
-  ],
-  "DalamudApiLevel": 4
+  "Tags": ["heels", "high heels", "height", "offset", "leonblade"],
+  "DalamudApiLevel": 4,
+  "IconUrl": "https://github.com/LeonBlade/HeelsPlugin/raw/main/icon.png"
 }
