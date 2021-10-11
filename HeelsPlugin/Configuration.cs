@@ -1,25 +1,19 @@
 ﻿using Dalamud.Configuration;
-using Dalamud.Plugin;
 using System;
+using System.Collections.Generic;
 
 namespace HeelsPlugin
 {
-    [Serializable]
-    public class Configuration : IPluginConfiguration
+  [Serializable]
+  public class Configuration : IPluginConfiguration
+  {
+    public int Version { get; set; } = 1;
+
+    public List<ConfigModel> Configs = new();
+
+    public void Save()
     {
-        public int Version { get; set; } = 0;
-
-        [NonSerialized]
-        private DalamudPluginInterface pluginInterface;
-
-        public void Initialize(DalamudPluginInterface pluginInterface)
-        {
-            this.pluginInterface = pluginInterface;
-        }
-
-        public void Save()
-        {
-            this.pluginInterface.SavePluginConfig(this);
-        }
+      Plugin.PluginInterface.SavePluginConfig(this);
     }
+  }
 }
