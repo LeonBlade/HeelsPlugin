@@ -8,5 +8,6 @@ namespace HeelsPlugin
     public string Name;
     public short Model;
     public float Offset;
+    public bool Enabled;
   }
 }

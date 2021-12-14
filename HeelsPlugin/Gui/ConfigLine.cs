@@ -12,7 +12,7 @@ namespace HeelsPlugin.Gui
     private readonly ConfigModel model;
     private string ItemName
     {
-      get => model.Model > 0 ? combo.Items.Find(c => (short)c.ModelMain == model.Model).Name.ToString() : "";
+      get => model != null && model.Model > 0 ? combo.Items.Find(c => (short)c.ModelMain == model.Model).Name.ToString() : "";
     }
 
     public int Key { get => key; }
@@ -47,6 +47,12 @@ namespace HeelsPlugin.Gui
       {
         ImGui.BeginGroup();
 
+        if (ImGui.Checkbox($"##Enabled{key}", ref model.Enabled))
+        {
+          OnChange?.Invoke();
+        }
+
+        ImGui.SameLine();
         ImGui.PushItemWidth(200f);
         if (ImGui.InputText($"##Name{key}", ref model.Name, 64))
         {

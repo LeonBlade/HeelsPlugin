@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <Version>1.1.1</Version>
-	  <TargetFramework>net5.0-windows</TargetFramework>
+    <Version>1.1.2</Version>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>x64</Platforms>
@@ -11,24 +11,24 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <PreserveCompilationContext>false</PreserveCompilationContext>
   </PropertyGroup>
-	
+
   <PropertyGroup>
     <DalamudLibPath>$(AppData)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>
-	  <Reference Include="Dalamud">
-	    <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
-	    <Private>False</Private>
-	  </Reference>
-	  <Reference Include="ImGui.NET">
-	    <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-	    <Private>False</Private>
-	  </Reference>
-	  <Reference Include="ImGuiScene">
-	    <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-	    <Private>False</Private>
-	  </Reference>
+    <Reference Include="Dalamud">
+      <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ImGui.NET">
+      <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ImGuiScene">
+      <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Lumina">
       <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
       <Private>False</Private>
@@ -41,13 +41,17 @@
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Penumbra.GameData">
+      <HintPath>$(ProjectDir)Penumbra/Penumbra.GameData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
-	  <None Include="..\.editorconfig" Link=".editorconfig" />
-	  <None Include="HeelsPlugin.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+    <None Include="HeelsPlugin.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(Configuration) == Release">

@@ -26,7 +26,7 @@ namespace HeelsPlugin
 
     public PluginMemory()
     {
-      playerMovementFunc = Plugin.SigScanner.ScanText("48 89 5C 24 08 55 48 8B EC 48 83 EC 70 83 79 7C 00");
+      playerMovementFunc = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B 03 48 8B CB FF 50 18 83 F8 02 75 ??");
       playerMovementHook = new Hook<PlayerMovementDelegate>(
         playerMovementFunc,
         new PlayerMovementDelegate(PlayerMovementHook)
@@ -101,9 +101,9 @@ namespace HeelsPlugin
       try
       {
         var character = Marshal.PtrToStructure<Character>(player);
-        var feet = BitConverter.ToInt16(new byte[2] { character.EquipSlotData[4 * 4], character.EquipSlotData[(4 * 4) + 1] });
+        var feet = Marshal.ReadInt16(player + 0xDC0);
         var config = GetConfigForModelId(feet);
-        if (config != null)
+        if (config != null && config.Enabled)
         {
           SetPosition(config.Offset, player.ToInt64());
         }

@@ -21,7 +21,7 @@ namespace HeelsPlugin
     private readonly Dictionary<int, ConfigLine> configs = new();
     private int index = -1;
 
-    private const int MIN_MAX_WIDTH = 580;
+    private const int MIN_MAX_WIDTH = 600;
 
     public PluginUI()
     {
