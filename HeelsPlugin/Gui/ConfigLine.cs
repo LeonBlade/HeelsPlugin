@@ -1,6 +1,5 @@
 ﻿using Dalamud.Interface;
 using Dalamud.Interface.Components;
-using Dalamud.Logging;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 

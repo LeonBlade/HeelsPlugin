@@ -75,11 +75,33 @@ namespace HeelsPlugin
       public float Z;
     }
 
+    struct Quad
+    {
+      public short A;
+      public short B;
+      public short C;
+      public short D;
+
+      public Quad(ulong data)
+      {
+        A = (short)data;
+        B = (short)(data >> 16);
+        C = (short)(data >> 32);
+        D = (short)(data >> 48);
+      }
+    }
+
     private ConfigModel GetConfigForModelId(ulong modelId)
     {
       var config = Plugin.Configuration.Configs.Where(e => {
         var valid = false;
-        if (e.ModelMain > 0) valid = e.ModelMain == modelId;
+        if (e.ModelMain > 0)
+        {
+          var qModelMain = new Quad(e.ModelMain);
+          var qModelId = new Quad(modelId);
+
+          valid = qModelMain.A == qModelId.A && (byte)qModelMain.B == (byte)qModelId.B;
+        }
         else valid = e.Model == (short)modelId;
         return valid && e.Enabled;
       });
