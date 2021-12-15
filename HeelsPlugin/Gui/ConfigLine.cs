@@ -1,5 +1,6 @@
 ﻿using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Logging;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
@@ -10,9 +11,16 @@ namespace HeelsPlugin.Gui
     private readonly int key = 0;
     private readonly ComboWithFilter<Item> combo;
     private readonly ConfigModel model;
-    private string ItemName
+    private string itemName
     {
-      get => model != null && model.Model > 0 ? combo.Items.Find(c => (short)c.ModelMain == model.Model).Name.ToString() : "";
+      get {
+        if (model == null || (model.ModelMain <=0 && model.Model <= 0)) return "";
+        return combo.Items.Find(c =>
+        {
+          if (model.ModelMain > 0) return c.ModelMain == model.ModelMain;
+          return (short)c.ModelMain == model.Model;
+        }).Name.ToString();
+      }
     }
 
     public int Key { get => key; }
@@ -61,9 +69,9 @@ namespace HeelsPlugin.Gui
         ImGui.PopItemWidth();
 
         ImGui.SameLine();
-        if (combo.Draw($"{ItemName}##{key}", out var item))
+        if (combo.Draw($"{itemName}##{key}", out var item))
         {
-          model.Model = (short)item.ModelMain;
+          model.ModelMain = item.ModelMain;
           OnChange?.Invoke();
         }
 

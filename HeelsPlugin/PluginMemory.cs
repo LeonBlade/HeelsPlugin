@@ -22,7 +22,7 @@ namespace HeelsPlugin
     public delegate IntPtr GposeActorDelegate(IntPtr rcx, int rdx, int r8, IntPtr r9, long unknown);
     public readonly Hook<GposeActorDelegate> gposeActorHook;
 
-    private Dictionary<short, ConfigModel> ModelCache = new();
+    private Dictionary<ulong, ConfigModel> ModelCache = new();
 
     public PluginMemory()
     {
@@ -75,22 +75,19 @@ namespace HeelsPlugin
       public float Z;
     }
 
-    private ConfigModel GetConfigForModelId(short modelId)
+    private ConfigModel GetConfigForModelId(ulong modelId)
     {
-      if (ModelCache.ContainsKey(modelId))
+      var config = Plugin.Configuration.Configs.Where(e => {
+        var valid = false;
+        if (e.ModelMain > 0) valid = e.ModelMain == modelId;
+        else valid = e.Model == (short)modelId;
+        return valid && e.Enabled;
+      });
+      if (config.Any())
       {
-        return ModelCache[modelId];
+        return config.First();
       }
-      else
-      {
-        var config = Plugin.Configuration.Configs.Where(e => e.Model == modelId);
-        if (config.Any())
-        {
-          ModelCache.Add(modelId, config.First());
-          return config.First();
-        }
-        return null;
-      }
+      return null;
     }
 
     private unsafe void PlayerMovementHook(IntPtr player)
@@ -101,7 +98,7 @@ namespace HeelsPlugin
       try
       {
         var character = Marshal.PtrToStructure<Character>(player);
-        var feet = Marshal.ReadInt16(player + 0xDC0);
+        var feet = (ulong)Marshal.ReadInt32(player + 0xDC0);
         var config = GetConfigForModelId(feet);
         if (config != null && config.Enabled)
         {

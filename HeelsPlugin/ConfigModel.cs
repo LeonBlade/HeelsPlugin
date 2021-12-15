@@ -6,7 +6,8 @@ namespace HeelsPlugin
   public class ConfigModel
   {
     public string Name;
-    public short Model;
+    public short Model; // legacy
+    public ulong ModelMain;
     public float Offset;
     public bool Enabled;
   }
