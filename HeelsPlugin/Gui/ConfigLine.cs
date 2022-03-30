@@ -12,8 +12,9 @@ namespace HeelsPlugin.Gui
     private readonly ConfigModel model;
     private string itemName
     {
-      get {
-        if (model == null || (model.ModelMain <=0 && model.Model <= 0)) return "";
+      get
+      {
+        if (model == null || (model.ModelMain <= 0 && model.Model <= 0)) return "";
         return combo.Items.Find(c =>
         {
           if (model.ModelMain > 0) return c.ModelMain == model.ModelMain;
@@ -48,49 +49,84 @@ namespace HeelsPlugin.Gui
       this.model = model;
     }
 
+    private void UpdatePlayerY()
+    {
+      if (model.Enabled && Plugin.Memory.GetPlayerFeet().ToUlong() == model.ModelMain)
+        Plugin.Memory.SetPosition(Plugin.Memory.PlayerY + model.Offset, 0, true);
+      else if (!model.Enabled && Plugin.Memory.GetPlayerFeet().ToUlong() == model.ModelMain)
+        RestorePlayerY();
+    }
+
+    private void RestorePlayerY()
+    {
+      Plugin.Memory.SetPosition(Plugin.Memory.PlayerY, 0, true);
+    }
+
     public void Draw()
     {
       try
       {
-        ImGui.BeginGroup();
+        var fontScale = ImGui.GetIO().FontGlobalScale;
 
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (12 * fontScale));
         if (ImGui.Checkbox($"##Enabled{key}", ref model.Enabled))
         {
           OnChange?.Invoke();
+          UpdatePlayerY();
         }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Enable or disable this entry from being used");
 
-        ImGui.SameLine();
-        ImGui.PushItemWidth(200f);
+        ImGui.TableNextColumn();
+        ImGui.PushItemWidth(-1);
         if (ImGui.InputText($"##Name{key}", ref model.Name, 64))
+          OnChange?.Invoke();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set a name to remember what this entry is used for");
+
+        ImGui.TableNextColumn();
+
+        ImGui.BeginGroup();
+        if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.EyeDropper))
         {
+          var feetPics = Plugin.Memory.GetPlayerFeet();
+          model.ModelMain = feetPics.ToUlong();
           OnChange?.Invoke();
         }
-        ImGui.PopItemWidth();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set as your active footwear");
 
         ImGui.SameLine();
-        if (combo.Draw($"{itemName}##{key}", out var item))
+        if (combo.Draw($"{itemName}##{key}", out var item, -1))
         {
           model.ModelMain = item.ModelMain;
           OnChange?.Invoke();
         }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Select an item for this entry");
+        ImGui.EndGroup();
+        ImGui.PopItemWidth();
 
-        ImGui.SameLine();
-        ImGui.PushItemWidth(100);
+        ImGui.TableNextColumn();
+        ImGui.SetNextItemWidth(110 * fontScale);
         if (ImGui.InputFloat($"##Height{key}", ref model.Offset, 0.01f, 0.01f, "%.2f"))
         {
           OnChange?.Invoke();
+          UpdatePlayerY();
         }
-        ImGui.PopItemWidth();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set how much the heels add to your height");
 
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.Trash))
+        ImGui.TableNextColumn();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (11 * fontScale));
+        if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.TrashAlt))
         {
+          model.Enabled = false;
           OnDelete?.Invoke(key);
+          RestorePlayerY();
         }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Deletes an entry from your config");
       }
       finally
       {
-        ImGui.EndGroup();
       }
     }
   }

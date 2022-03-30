@@ -22,7 +22,21 @@ namespace HeelsPlugin
     public delegate IntPtr GposeActorDelegate(IntPtr rcx, int rdx, int r8, IntPtr r9, long unknown);
     public readonly Hook<GposeActorDelegate> gposeActorHook;
 
-    private Dictionary<ulong, ConfigModel> ModelCache = new();
+    public float? playerY = null;
+    public float PlayerY
+    {
+      get
+      {
+        if (playerY == null)
+        {
+          var (_, position) = GetActorPosition(IntPtr.Zero);
+          playerY = position.Y;
+          return (float)playerY;
+        }
+        return (float)playerY;
+      }
+      set => playerY = value;
+    }
 
     public PluginMemory()
     {
@@ -67,33 +81,10 @@ namespace HeelsPlugin
       }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    struct Vector3
-    {
-      public float X;
-      public float Y;
-      public float Z;
-    }
-
-    struct Quad
-    {
-      public short A;
-      public short B;
-      public short C;
-      public short D;
-
-      public Quad(ulong data)
-      {
-        A = (short)data;
-        B = (short)(data >> 16);
-        C = (short)(data >> 32);
-        D = (short)(data >> 48);
-      }
-    }
-
     private ConfigModel GetConfigForModelId(ulong modelId)
     {
-      var config = Plugin.Configuration.Configs.Where(e => {
+      var config = Plugin.Configuration.Configs.Where(e =>
+      {
         var valid = false;
         if (e.ModelMain > 0)
         {
@@ -112,6 +103,20 @@ namespace HeelsPlugin
       return null;
     }
 
+    public Quad GetPlayerFeet()
+    {
+      var player = Plugin.ObjectTable[0].Address;
+      return GetPlayerFeet(player);
+    }
+
+    public Quad GetPlayerFeet(IntPtr player)
+    {
+      var feet = (ulong)Marshal.ReadInt32(player + 0xDC0);
+      var feetPics = new Quad(feet);
+      PluginLog.Log($"feet {feet:X}, pics {feetPics.ToUlong():X}");
+      return feetPics;
+    }
+
     private unsafe void PlayerMovementHook(IntPtr player)
     {
       // Call the original function.
@@ -119,7 +124,12 @@ namespace HeelsPlugin
 
       try
       {
-        var character = Marshal.PtrToStructure<Character>(player);
+        if (player == Plugin.ObjectTable[0].Address)
+        {
+          var (_, position) = GetActorPosition(player);
+          PlayerY = position.Y;
+        }
+
         var feet = (ulong)Marshal.ReadInt32(player + 0xDC0);
         var config = GetConfigForModelId(feet);
         if (config != null && config.Enabled)
@@ -129,7 +139,7 @@ namespace HeelsPlugin
       }
       catch (Exception ex)
       {
-        PluginLog.LogError(ex, "uh oh");
+        PluginLog.LogError(ex, $"Error while moving with player {player.ToInt64():X}");
       }
     }
 
@@ -147,31 +157,45 @@ namespace HeelsPlugin
       return gposeActorHook.Original(rcx, rdx, r8, r9, unknown);
     }
 
+    private (IntPtr, Vector3) GetActorPosition(IntPtr actor)
+    {
+      try
+      {
+        var modelPtr = Marshal.ReadInt64(actor, 0xF0);
+        if (modelPtr == 0)
+          return (IntPtr.Zero, Vector3.Zero);
+        var positionPtr = new IntPtr(modelPtr + 0x50);
+        return (positionPtr, Marshal.PtrToStructure<Vector3>(positionPtr));
+      }
+      catch
+      {
+        return (IntPtr.Zero, Vector3.Zero);
+      }
+    }
+
     /// <summary>
     /// Sets the position of the Y for given actor.
     /// </summary>
-    /// <param name="p_actor">Actor address</param>
+    /// <param name="actorAddress">Actor address</param>
     /// <param name="offset">Offset in the Y direction</param>
-    public static void SetPosition(float offset, long p_actor = 0)
+    public void SetPosition(float offset, long actorAddress = 0, bool replace = false)
     {
       try
       {
         var actor = IntPtr.Zero;
-        if (p_actor == 0)
+        if (actorAddress == 0)
           actor = Plugin.ObjectTable[0].Address;
         else
-          actor = new IntPtr(p_actor);
+          actor = new IntPtr(actorAddress);
 
         if (actor != IntPtr.Zero)
         {
-          var modelPtr = Marshal.ReadInt64(actor, 0xF0);
-          if (modelPtr == 0)
-            return;
-          var positionPtr = new IntPtr(modelPtr + 0x50);
-          var position = Marshal.PtrToStructure<Vector3>(positionPtr);
+          var (positionPtr, position) = GetActorPosition(actor);
+          if (positionPtr == IntPtr.Zero) return;
 
           // Offset the Y coordinate.
-          position.Y += offset;
+          if (replace) position.Y = offset;
+          else position.Y += offset;
 
           Marshal.StructureToPtr(position, positionPtr, false);
         }

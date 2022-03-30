@@ -24,14 +24,14 @@ namespace HeelsPlugin
     private const string commandName = "/xlheels";
 
     public static Configuration Configuration;
-    private readonly PluginMemory memory;
+    public static PluginMemory Memory;
     private readonly PluginUI ui;
 
     public Plugin()
     {
       Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-      memory = new();
+      Memory = new();
       ui = new();
 
       CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
@@ -45,7 +45,7 @@ namespace HeelsPlugin
     public void Dispose()
     {
       // Dispose for stuff in Plugin Memory class.
-      memory.Dispose();
+      Memory.Dispose();
 
       CommandManager.RemoveHandler(commandName);
 

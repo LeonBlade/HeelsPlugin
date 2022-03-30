@@ -1,4 +1,7 @@
-﻿using ImGuiNET;
+﻿//
+// Source: https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Gui/ComboWithFilter.cs
+//
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
