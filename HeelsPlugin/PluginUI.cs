@@ -68,11 +68,11 @@ namespace HeelsPlugin
       return new($"##FeetPics{id}", -1, -1, feet.Values.ToArray(), i => i.Name)
       {
         Flags = ImGuiComboFlags.HeightLarge,
-        CreateSelectable = i =>
+        CreateSelectable = item =>
         {
-          var ret = ImGui.Selectable(i.Name);
-          var model = new Quad(i.ModelMain);
-          var ids = $"{model.A}, {model.B}";
+          var ret = ImGui.Selectable(item.Name);
+          var model = new EquipItem((uint)item.ModelMain);
+          var ids = $"{model.Main}, {model.Variant}";
           var size = ImGui.CalcTextSize(ids).X;
           ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - size - ImGui.GetStyle().ItemInnerSpacing.X);
           ImGui.TextColored(GreyVector, ids);

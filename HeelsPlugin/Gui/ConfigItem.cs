@@ -1,8 +1,8 @@
-﻿using System;
-using Dalamud.Interface;
+﻿using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using System;
 
 namespace HeelsPlugin.Gui
 {
@@ -11,15 +11,24 @@ namespace HeelsPlugin.Gui
     private readonly int key = 0;
     private readonly ComboWithFilter<Item> combo;
     private readonly ConfigModel config;
-    private string itemName
+    private string ItemName
     {
       get
       {
-        if (config == null || (config.ModelMain <= 0 && config.Model <= 0)) return "";
-        var foundItem = combo.Items.Find(c =>
+        if (config == null || (config.ModelMain <= 0 && config.Model <= 0))
+          return "";
+
+        var foundItem = combo.Items.Find(item =>
         {
-          if (config.ModelMain > 0) return c.ModelMain == config.ModelMain;
-          return (short)c.ModelMain == config.Model;
+          if (config.ModelMain > 0)
+          {
+            var thisItem = new EquipItem((uint)item.ModelMain);
+            var configItem = new EquipItem(config.ModelMain);
+
+            return thisItem.Main == configItem.Main && thisItem.Variant == configItem.Variant;
+          }
+          return
+            (short)item.ModelMain == config.Model;
         });
         if (foundItem != null)
           return foundItem?.Name;
@@ -154,16 +163,16 @@ namespace HeelsPlugin.Gui
         if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.EyeDropper))
         {
           var feetPics = Plugin.Memory.GetPlayerFeet();
-          config.ModelMain = feetPics.ToUlong();
+          config.ModelMain = feetPics.ToUInt();
           OnChange?.Invoke();
         }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set as your active footwear");
 
         // Item
         ImGui.SameLine();
-        if (combo.Draw($"{itemName}##{key}", out var item, -1))
+        if (combo.Draw($"{ItemName}##{key}", out var item, -1))
         {
-          config.ModelMain = item.ModelMain;
+          config.ModelMain = (uint)item.ModelMain;
           OnChange?.Invoke();
         }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Select an item for this entry");
@@ -182,7 +191,7 @@ namespace HeelsPlugin.Gui
         // Height
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(110 * fontScale);
-        if (ImGui.InputFloat($"##Height{key}", ref config.Offset, 0.01f, 0.01f, "%.2f"))
+        if (ImGui.InputFloat($"##Height{key}", ref config.Offset, 0.01f, 0.05f, "%.3f"))
           OnChange?.Invoke();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set how much the heels add to your height");
 

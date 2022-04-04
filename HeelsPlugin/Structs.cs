@@ -21,24 +21,27 @@ namespace HeelsPlugin
     public static Vector3 One => new(1, 1, 1);
   }
 
-  public struct Quad
+  public struct EquipItem
   {
-    public ushort A;
-    public ushort B;
-    public ushort C;
-    public ushort D;
+    public ushort Main;
+    public byte Variant;
+    public byte Dye;
 
-    public Quad(ulong data)
+    public EquipItem(uint data)
     {
-      A = (ushort)data;
-      B = (ushort)(data >> 16);
-      C = (ushort)(data >> 32);
-      D = (ushort)(data >> 48);
+      Main = (ushort)data;
+      Variant = (byte)(data >> 16);
+      Dye = (byte)(data >> 24);
     }
 
-    public ulong ToUlong()
+    public uint ToUInt()
     {
-      return (ulong)(A | (B << 16) | (C << 32) | (D << 48));
+      return (uint)(Main | (Variant << 16) | (Dye << 24));
+    }
+
+    public override string ToString()
+    {
+      return $"{Main}, {Variant}, {Dye}";
     }
   }
 

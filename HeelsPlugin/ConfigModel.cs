@@ -7,7 +7,7 @@ namespace HeelsPlugin
   {
     public string Name;
     public short Model; // legacy
-    public ulong ModelMain;
+    public uint ModelMain;
     public float Offset;
     public bool Enabled;
     public Sexes SexFilter = (Sexes)255;

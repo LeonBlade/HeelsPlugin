@@ -42,25 +42,26 @@ namespace HeelsPlugin
       }
     }
 
-    private ConfigModel GetConfigForModelId(ulong modelId)
+    private ConfigModel GetConfigForModelId(EquipItem inModel)
     {
-      var config = Plugin.Configuration.Configs.Where(e =>
+      var foundConfig = Plugin.Configuration.Configs.Where(config =>
       {
         var valid = false;
-        if (e.ModelMain > 0)
+        if (config.ModelMain > 0)
         {
-          var qModelMain = new Quad(e.ModelMain);
-          var qModelId = new Quad(modelId);
-
-          valid = qModelMain.A == qModelId.A && (byte)qModelMain.B == (byte)qModelId.B;
+          var configModel = new EquipItem(config.ModelMain);
+          valid = configModel.Main == inModel.Main && configModel.Variant == inModel.Variant;
         }
-        else valid = e.Model == (short)modelId;
-        return valid && e.Enabled;
+        else
+          valid = config.Model == inModel.Main;
+
+        return valid && config.Enabled;
       });
-      if (config.Any())
-      {
-        return config.First();
-      }
+
+      // return the last one in the list
+      if (foundConfig.Any())
+        return foundConfig.Last();
+
       return null;
     }
 
@@ -70,16 +71,16 @@ namespace HeelsPlugin
       PlayerMove(Plugin.ObjectTable[0].Address);
     }
 
-    public Quad GetPlayerFeet()
+    public EquipItem GetPlayerFeet()
     {
       var player = Plugin.ObjectTable[0].Address;
       return GetPlayerFeet(player);
     }
 
-    public Quad GetPlayerFeet(IntPtr player)
+    public EquipItem GetPlayerFeet(IntPtr player)
     {
-      var feet = (ulong)Marshal.ReadInt64(player + 0xDC0);
-      return new Quad(feet);
+      var feet = (uint)Marshal.ReadInt32(player + 0xDC0);
+      return new EquipItem(feet);
     }
 
     private bool IsConfigValidForActor(IntPtr player, ConfigModel config)
@@ -107,7 +108,7 @@ namespace HeelsPlugin
       try
       {
         // get the feet gear
-        var feet = (ulong)Marshal.ReadInt32(player + 0xDC0);
+        var feet = GetPlayerFeet(player);
         var config = GetConfigForModelId(feet);
 
         // Check config and set position
