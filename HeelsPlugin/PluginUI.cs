@@ -19,7 +19,7 @@ namespace HeelsPlugin
       set => visible = value;
     }
     private readonly IReadOnlyDictionary<uint, Item> feet;
-    private readonly Dictionary<int, ConfigLine> configs = new();
+    private readonly Dictionary<int, ConfigItem> configs = new();
     private int index = -1;
     private static readonly Vector4 GreyVector = new(0.5f, 0.5f, 0.5f, 1);
 
@@ -84,7 +84,7 @@ namespace HeelsPlugin
     private void AddConfigLine(ConfigModel? model = null)
     {
       index++;
-      ConfigLine line;
+      ConfigItem line;
       if (model == null)
         line = new(index, CreateCombo(index));
       else
@@ -97,12 +97,15 @@ namespace HeelsPlugin
     private void HandleDelete(int key)
     {
       configs.Remove(key);
+      Plugin.Configuration.Save();
+      Plugin.Memory.RestorePlayerY();
     }
 
     private void HandleChange()
     {
       Plugin.Configuration.Configs = configs.Values.Select(c => c.Model).ToList();
       Plugin.Configuration.Save();
+      Plugin.Memory.RestorePlayerY();
     }
 
     public void DrawConfiguration()
@@ -126,11 +129,12 @@ namespace HeelsPlugin
 
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(5f, 6f));
         ImGui.BeginChild("##ConfigScroll");
-        if (ImGui.BeginTable("##Config", 5, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable))
+        if (ImGui.BeginTable("##Config", 6, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable))
         {
           ImGui.TableSetupColumn("Enabled", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize);
           ImGui.TableSetupColumn("Name");
           ImGui.TableSetupColumn("Item");
+          ImGui.TableSetupColumn("Filter", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize);
           ImGui.TableSetupColumn("Height", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize);
           ImGui.TableSetupColumn("Remove", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize);
           ImGui.TableHeadersRow();

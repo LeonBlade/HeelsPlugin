@@ -10,5 +10,7 @@ namespace HeelsPlugin
     public ulong ModelMain;
     public float Offset;
     public bool Enabled;
+    public Sexes SexFilter = (Sexes)255;
+    public Races RaceFilter = (Races)255;
   }
 }

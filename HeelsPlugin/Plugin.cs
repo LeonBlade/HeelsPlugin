@@ -12,10 +12,10 @@ namespace HeelsPlugin
   public class Plugin : IDalamudPlugin
   {
 
-    [PluginService] public static CommandManager CommandManager { get; set; } = null!;
-    [PluginService] public static DalamudPluginInterface PluginInterface { get; set; } = null!;
-    [PluginService] public static SigScanner SigScanner { get; set; } = null!;
-    [PluginService] public static ObjectTable ObjectTable { get; set; } = null!;
+    [PluginService] public static CommandManager CommandManager { get; private set; } = null!;
+    [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; } = null!;
+    [PluginService] public static SigScanner SigScanner { get; private set; } = null!;
+    [PluginService] public static ObjectTable ObjectTable { get; private set; } = null!;
     [PluginService] public static DataManager Data { get; private set; } = null!;
     [PluginService] public static ClientState ClientState { get; private set; } = null!;
 

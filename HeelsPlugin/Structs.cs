@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace HeelsPlugin
 {
@@ -39,5 +40,25 @@ namespace HeelsPlugin
     {
       return (ulong)(A | (B << 16) | (C << 32) | (D << 48));
     }
+  }
+
+  [Flags]
+  public enum Sexes : byte
+  {
+    Male = 1,
+    Female = 2
+  }
+
+  [Flags]
+  public enum Races : byte
+  {
+    Hyur = 1,
+    Elezen = 2,
+    Lalafell = 4,
+    Miqote = 8,
+    Roegadyn = 16,
+    AuRa = 32,
+    Viera = 64,
+    Hrothgar = 128
   }
 }

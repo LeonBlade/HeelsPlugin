@@ -1,8 +1,8 @@
-﻿using Dalamud.Hooking;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Hooking;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -10,33 +10,10 @@ namespace HeelsPlugin
 {
   public class PluginMemory
   {
-    private IntPtr actor = IntPtr.Zero;
-
     public IntPtr playerMovementFunc;
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void PlayerMovementDelegate(IntPtr player);
+    public unsafe delegate void PlayerMovementDelegate(IntPtr player);
     public readonly Hook<PlayerMovementDelegate> playerMovementHook;
-
-    public IntPtr gposeActorFunc;
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate IntPtr GposeActorDelegate(IntPtr rcx, int rdx, int r8, IntPtr r9, long unknown);
-    public readonly Hook<GposeActorDelegate> gposeActorHook;
-
-    public float? playerY = null;
-    public float PlayerY
-    {
-      get
-      {
-        if (playerY == null)
-        {
-          var (_, position) = GetActorPosition(IntPtr.Zero);
-          playerY = position.Y;
-          return (float)playerY;
-        }
-        return (float)playerY;
-      }
-      set => playerY = value;
-    }
 
     public PluginMemory()
     {
@@ -46,19 +23,9 @@ namespace HeelsPlugin
         new PlayerMovementDelegate(PlayerMovementHook)
       );
 
-      gposeActorFunc = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 DB 74 33");
-      gposeActorHook = new Hook<GposeActorDelegate>(
-        gposeActorFunc,
-        new GposeActorDelegate(GposeActorHook)
-      );
-
       playerMovementHook.Enable();
-      gposeActorHook.Enable();
     }
 
-    /// <summary>
-    /// Dispose for the memory functions.
-    /// </summary>
     public void Dispose()
     {
       try
@@ -67,12 +34,6 @@ namespace HeelsPlugin
         {
           playerMovementHook?.Disable();
           playerMovementHook?.Dispose();
-        }
-
-        if (gposeActorHook != null)
-        {
-          gposeActorHook?.Disable();
-          gposeActorHook?.Dispose();
         }
       }
       catch (Exception ex)
@@ -103,6 +64,12 @@ namespace HeelsPlugin
       return null;
     }
 
+    public void RestorePlayerY()
+    {
+      SetPosition(Plugin.ObjectTable[0].Position.Y, 0, true);
+      PlayerMove(Plugin.ObjectTable[0].Address);
+    }
+
     public Quad GetPlayerFeet()
     {
       var player = Plugin.ObjectTable[0].Address;
@@ -111,31 +78,41 @@ namespace HeelsPlugin
 
     public Quad GetPlayerFeet(IntPtr player)
     {
-      var feet = (ulong)Marshal.ReadInt32(player + 0xDC0);
-      var feetPics = new Quad(feet);
-      PluginLog.Log($"feet {feet:X}, pics {feetPics.ToUlong():X}");
-      return feetPics;
+      var feet = (ulong)Marshal.ReadInt64(player + 0xDC0);
+      return new Quad(feet);
     }
 
-    private unsafe void PlayerMovementHook(IntPtr player)
+    private bool IsConfigValidForActor(IntPtr player, ConfigModel config)
     {
-      // Call the original function.
-      playerMovementHook.Original(player);
+      // create game object from pointer
+      var gameObject = Plugin.ObjectTable.CreateObjectReference(player);
+      if (gameObject.ObjectKind != ObjectKind.Player)
+        return false;
 
+      // get a character from the game object
+      var character = (Character)gameObject;
+
+      // get the race and sex of character for filtering on config
+      var race = (Races)Math.Pow(character.Customize[(int)CustomizeIndex.Race], 2);
+      var sex = (Sexes)character.Customize[(int)CustomizeIndex.Gender] + 1;
+
+      if (config != null && config.Enabled && ((config.RaceFilter & race) == race) && ((config.SexFilter & sex) == sex))
+        return true;
+
+      return false;
+    }
+
+    public unsafe void PlayerMove(IntPtr player)
+    {
       try
       {
-        if (player == Plugin.ObjectTable[0].Address)
-        {
-          var (_, position) = GetActorPosition(player);
-          PlayerY = position.Y;
-        }
-
+        // get the feet gear
         var feet = (ulong)Marshal.ReadInt32(player + 0xDC0);
         var config = GetConfigForModelId(feet);
-        if (config != null && config.Enabled)
-        {
+
+        // Check config and set position
+        if (IsConfigValidForActor(player, config))
           SetPosition(config.Offset, player.ToInt64());
-        }
       }
       catch (Exception ex)
       {
@@ -143,18 +120,11 @@ namespace HeelsPlugin
       }
     }
 
-    private IntPtr GposeActorHook(IntPtr rcx, int rdx, int r8, IntPtr r9, long unknown)
+    private unsafe void PlayerMovementHook(IntPtr player)
     {
-      try
-      {
-        actor = new IntPtr(Marshal.ReadInt64(r9 + 8));
-      }
-      catch (Exception ex)
-      {
-        PluginLog.LogError(ex.Message);
-      }
-
-      return gposeActorHook.Original(rcx, rdx, r8, r9, unknown);
+      // Call the original function.
+      playerMovementHook.Original(player);
+      PlayerMove(player);
     }
 
     private (IntPtr, Vector3) GetActorPosition(IntPtr actor)
@@ -173,11 +143,6 @@ namespace HeelsPlugin
       }
     }
 
-    /// <summary>
-    /// Sets the position of the Y for given actor.
-    /// </summary>
-    /// <param name="actorAddress">Actor address</param>
-    /// <param name="offset">Offset in the Y direction</param>
     public void SetPosition(float offset, long actorAddress = 0, bool replace = false)
     {
       try
