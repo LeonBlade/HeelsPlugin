@@ -17,7 +17,7 @@ namespace HeelsPlugin
 
     public PluginMemory()
     {
-      playerMovementFunc = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B 03 48 8B CB FF 50 18 83 F8 02 75 ??");
+      playerMovementFunc = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B 03 48 8B CB FF 50 ?? 83 F8 ?? 75 ??");
       playerMovementHook = new Hook<PlayerMovementDelegate>(
         playerMovementFunc,
         new PlayerMovementDelegate(PlayerMovementHook)
@@ -79,7 +79,7 @@ namespace HeelsPlugin
 
     public EquipItem GetPlayerFeet(IntPtr player)
     {
-      var feet = (uint)Marshal.ReadInt32(player + 0xDC0);
+      var feet = (uint)Marshal.ReadInt32(player + 0x808 + 0x10);
       return new EquipItem(feet);
     }
 

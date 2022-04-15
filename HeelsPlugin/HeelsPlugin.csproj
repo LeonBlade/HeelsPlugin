@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.6</Version>
+    <Version>1.1.7</Version>
     <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -10,6 +10,8 @@
     <OutputType>Library</OutputType>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <PreserveCompilationContext>false</PreserveCompilationContext>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>$(AppData)\XIVLauncher\devPlugins\BDTHPlugin</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -45,11 +47,7 @@
 
   <ItemGroup>
     <None Include="HeelsPlugin.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(Configuration) == Release">
-    <Exec Command="powershell Compress-Archive -Path '$(ProjectDir)$(OutDir)$(TargetName).json', '$(ProjectDir)$(OutDir)$(TargetName).dll' -DestinationPath '$(ProjectDir)bin\$(TargetName).zip' -Force" />
-  </Target>
 </Project>
