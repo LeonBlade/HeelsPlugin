@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
@@ -87,11 +88,10 @@ namespace HeelsPlugin
     {
       // create game object from pointer
       var gameObject = Plugin.ObjectTable.CreateObjectReference(player);
-      if (gameObject.ObjectKind != ObjectKind.Player)
-        return false;
+      var character = CharacterFactory.Convert(gameObject);
 
-      // get a character from the game object
-      var character = (Character)gameObject;
+      if (character == null || character.ModelType() != 0)
+        return false;
 
       // get the race and sex of character for filtering on config
       var race = (Races)Math.Pow(character.Customize[(int)CustomizeIndex.Race], 2);
