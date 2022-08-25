@@ -11,7 +11,7 @@ namespace HeelsPlugin.Gui
     private readonly int key = 0;
     private readonly ComboWithFilter<Item> combo;
     private readonly ConfigModel config;
-    private string ItemName
+    private string? ItemName
     {
       get
       {
@@ -31,7 +31,7 @@ namespace HeelsPlugin.Gui
             (short)item.ModelMain == config.Model;
         });
         if (foundItem != null)
-          return foundItem?.Name;
+          return foundItem.Name ?? "";
         return "(Invalid item found)";
       }
     }

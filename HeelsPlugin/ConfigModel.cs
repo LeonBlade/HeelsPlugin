@@ -12,5 +12,10 @@ namespace HeelsPlugin
     public bool Enabled;
     public Sexes SexFilter = (Sexes)255;
     public Races RaceFilter = (Races)255;
+
+    public ConfigModel()
+    {
+      Name = "";
+    }
   }
 }

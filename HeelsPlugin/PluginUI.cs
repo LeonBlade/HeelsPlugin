@@ -74,7 +74,7 @@ namespace HeelsPlugin
           var model = new EquipItem((uint)item.ModelMain);
           var ids = $"{model.Main}, {model.Variant}";
           var size = ImGui.CalcTextSize(ids).X;
-          ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - size - ImGui.GetStyle().ItemInnerSpacing.X);
+          ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - size - ImGui.GetStyle().ItemInnerSpacing.X);
           ImGui.TextColored(GreyVector, ids);
           return ret;
         }

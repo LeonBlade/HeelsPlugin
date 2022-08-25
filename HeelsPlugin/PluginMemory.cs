@@ -1,6 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using System;
@@ -19,10 +17,7 @@ namespace HeelsPlugin
     public PluginMemory()
     {
       playerMovementFunc = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B CB E8 ?? ?? ?? ?? 48 8B 03 48 8B CB FF 50 ?? 83 F8 ?? 75 ??");
-      playerMovementHook = new Hook<PlayerMovementDelegate>(
-        playerMovementFunc,
-        new PlayerMovementDelegate(PlayerMovementHook)
-      );
+      playerMovementHook = Hook<PlayerMovementDelegate>.FromAddress(playerMovementFunc, new PlayerMovementDelegate(PlayerMovementHook));
 
       playerMovementHook.Enable();
     }
@@ -43,7 +38,7 @@ namespace HeelsPlugin
       }
     }
 
-    private ConfigModel GetConfigForModelId(EquipItem inModel)
+    private ConfigModel? GetConfigForModelId(EquipItem inModel)
     {
       var foundConfig = Plugin.Configuration.Configs.Where(config =>
       {
@@ -80,7 +75,7 @@ namespace HeelsPlugin
 
     public EquipItem GetPlayerFeet(IntPtr player)
     {
-      var feet = (uint)Marshal.ReadInt32(player + 0x808 + 0x10);
+      var feet = (uint)Marshal.ReadInt32(player + 0x818 + 0x10);
       return new EquipItem(feet);
     }
 
