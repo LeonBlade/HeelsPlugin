@@ -162,9 +162,12 @@ namespace HeelsPlugin.Gui
         // Eyedrop button
         if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.EyeDropper))
         {
-          var feetPics = Plugin.Memory.GetPlayerFeet();
-          config.ModelMain = feetPics.ToUInt();
-          OnChange?.Invoke();
+          var feetPics = Plugin.Memory.GetPlayerFeetItem();
+          if (feetPics.HasValue)
+          {
+            config.ModelMain = feetPics.Value.ToUInt();
+            OnChange?.Invoke();
+          }
         }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set as your active footwear");
 
@@ -172,8 +175,11 @@ namespace HeelsPlugin.Gui
         ImGui.SameLine();
         if (combo.Draw($"{ItemName}##{key}", out var item, -1))
         {
-          config.ModelMain = (uint)item.ModelMain;
-          OnChange?.Invoke();
+          if (item != null)
+          {
+            config.ModelMain = (uint)item.ModelMain;
+            OnChange?.Invoke();
+          }
         }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Select an item for this entry");
         ImGui.EndGroup();

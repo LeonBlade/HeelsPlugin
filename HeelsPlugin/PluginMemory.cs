@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,8 @@ namespace HeelsPlugin
     public Dictionary<GameObject, float> PlayerOffsets = new();
 
     private float? lastOffset = null;
+
+    private GameObject PlayerSelf => Plugin.ObjectTable.First();
 
     public PluginMemory()
     {
@@ -43,7 +46,7 @@ namespace HeelsPlugin
       }
     }
 
-    private ConfigModel? GetConfigForModelId(EquipItem inModel)
+    private ConfigModel? GetConfig(EquipItem inModel)
     {
       var foundConfig = Plugin.Configuration?.Configs.Where(config =>
       {
@@ -66,21 +69,36 @@ namespace HeelsPlugin
       return null;
     }
 
-    public void RestorePlayerY()
+    private ConfigModel? GetConfig(IntPtr addr)
     {
-      SetPosition(Plugin.ObjectTable[0].Position.Y, 0, true);
-      PlayerMove(Plugin.ObjectTable[0].Address);
+      var feet = GetPlayerFeet(addr);
+      if (!feet.HasValue)
+        return null;
+      return GetConfig(feet.Value);
     }
 
-    public EquipItem GetPlayerFeet()
+    public void RestorePlayerY()
     {
-      var player = Plugin.ObjectTable[0].Address;
+      var player = PlayerSelf;
+      if (player != null)
+      {
+        SetPosition(player.Position.Y, player.Address, true);
+        PlayerMove(player.Address);
+      }
+    }
+
+    public EquipItem? GetPlayerFeetItem()
+    {
+      var player = PlayerSelf.Address;
       return GetPlayerFeet(player);
     }
 
-    public EquipItem GetPlayerFeet(IntPtr player)
+    public EquipItem? GetPlayerFeet(IntPtr? player)
     {
-      var feet = (uint)Marshal.ReadInt32(player + 0x818 + 0x10);
+      if (!player.HasValue)
+        return null;
+
+      var feet = (uint)Marshal.ReadInt32(player.Value + 0x818 + 0x10);
       return new EquipItem(feet);
     }
 
@@ -97,7 +115,10 @@ namespace HeelsPlugin
       var race = (Races)Math.Pow(character.Customize[(int)CustomizeIndex.Race], 2);
       var sex = (Sexes)character.Customize[(int)CustomizeIndex.Gender] + 1;
 
-      if (config != null && config.Enabled && ((config.RaceFilter & race) == race) && ((config.SexFilter & sex) == sex))
+      var containsRace = (config?.RaceFilter & race) == race;
+      var containsSex = (config?.SexFilter & sex) == sex;
+
+      if (config != null && config.Enabled && containsRace && containsSex)
         return true;
 
       return false;
@@ -105,8 +126,10 @@ namespace HeelsPlugin
 
     public float GetPlayerOffset()
     {
-      var feet = GetPlayerFeet();
-      var config = GetConfigForModelId(feet);
+      var feet = GetPlayerFeetItem();
+      if (!feet.HasValue)
+        return 0;
+      var config = GetConfig(feet.Value);
 
       return config?.Offset ?? 0;
     }
@@ -115,15 +138,33 @@ namespace HeelsPlugin
     {
       try
       {
-        // get the feet gear
-        var feet = GetPlayerFeet(player);
-        var config = GetConfigForModelId(feet);
+        if (player == PlayerSelf.Address)
+        {
+          ProcessSelf();
+          goto processPlayer;
+        }
+        else
+        {
+          var playerObject = Plugin.ObjectTable.CreateObjectReference(player);
 
-        // Check config and set position
-        if (IsConfigValidForActor(player, config))
-          SetPosition(config.Offset, player.ToInt64());
+          // check against dictionary created from IPC
+          if (playerObject != null && PlayerOffsets.ContainsKey(playerObject))
+          {
+            SetPosition(PlayerOffsets[playerObject], player);
+          }
+          else
+          {
+            goto processPlayer;
+          }
+        }
+        return;
 
-        ProcessPlayers(player);
+      processPlayer:
+        {
+          var config = GetConfig(player);
+          if (config != null && IsConfigValidForActor(player, config))
+            SetPosition(config.Offset, player);
+        }
       }
       catch (Exception ex)
       {
@@ -131,26 +172,12 @@ namespace HeelsPlugin
       }
     }
 
-    private void ProcessPlayer(IntPtr player)
+    private void ProcessSelf()
     {
-      var feet = GetPlayerFeet(player);
-      var config = GetConfigForModelId(feet);
-
+      var config = GetConfig(PlayerSelf.Address);
       if (lastOffset != config?.Offset && config?.Offset != null)
         Plugin.Ipc?.OnOffsetChange(config.Offset);
       lastOffset = config?.Offset;
-    }
-
-    private void ProcessPlayers(IntPtr player)
-    {
-      if (player == Plugin.ObjectTable[0].Address)
-        ProcessPlayer(player);
-      else
-      {
-        var playerObject = Plugin.ObjectTable.CreateObjectReference(player);
-        if (playerObject != null && PlayerOffsets.ContainsKey(playerObject))
-          SetPosition(PlayerOffsets[playerObject], player.ToInt64());
-      }
     }
 
     private unsafe void PlayerMovementHook(IntPtr player)
@@ -160,7 +187,7 @@ namespace HeelsPlugin
       PlayerMove(player);
     }
 
-    private (IntPtr, Vector3) GetActorPosition(IntPtr actor)
+    private (IntPtr, Vector3) GetPosition(IntPtr actor)
     {
       try
       {
@@ -176,24 +203,21 @@ namespace HeelsPlugin
       }
     }
 
-    public void SetPosition(float offset, long actorAddress = 0, bool replace = false)
+    public void SetPosition(float offset, IntPtr actor, bool replace = false)
     {
       try
       {
-        var actor = IntPtr.Zero;
-        if (actorAddress == 0)
-          actor = Plugin.ObjectTable[0].Address;
-        else
-          actor = new IntPtr(actorAddress);
-
         if (actor != IntPtr.Zero)
         {
-          var (positionPtr, position) = GetActorPosition(actor);
-          if (positionPtr == IntPtr.Zero) return;
+          var (positionPtr, position) = GetPosition(actor);
+          if (positionPtr == IntPtr.Zero)
+            return;
 
           // Offset the Y coordinate.
-          if (replace) position.Y = offset;
-          else position.Y += offset;
+          if (replace)
+            position.Y = offset;
+          else
+            position.Y += offset;
 
           Marshal.StructureToPtr(position, positionPtr, false);
         }
