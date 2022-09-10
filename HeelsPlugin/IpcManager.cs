@@ -18,23 +18,23 @@ namespace HeelsPlugin
     private ICallGateProvider<string>? ApiVersion;
     private ICallGateProvider<float>? GetOffset;
     private ICallGateProvider<float, object?>? OffsetUpdate;
-    private ICallGateSubscriber<GameObject, float, object?>? RegisterPlayer;
-    private ICallGateSubscriber<GameObject, object?>? UnregisterPlayer;
+    private ICallGateProvider<GameObject, float, object?>? RegisterPlayer;
+    private ICallGateProvider<GameObject, object?>? UnregisterPlayer;
 
     public IpcManager(DalamudPluginInterface pluginInterface, PluginMemory memory)
     {
       ApiVersion = pluginInterface.GetIpcProvider<string>(ApiVersionIdentifier);
       GetOffset = pluginInterface.GetIpcProvider<float>(IpcManager.GetOffsetIdentifier);
       OffsetUpdate = pluginInterface.GetIpcProvider<float, object?>(IpcManager.OffsetChangedIdentifier);
-      RegisterPlayer = pluginInterface.GetIpcSubscriber<GameObject, float, object?>(IpcManager.RegisterPlayerIdentifier);
-      UnregisterPlayer = pluginInterface.GetIpcSubscriber<GameObject, object?>(IpcManager.UnregisterPlayerIdentifier);
+      RegisterPlayer = pluginInterface.GetIpcProvider<GameObject, float, object?>(IpcManager.RegisterPlayerIdentifier);
+      UnregisterPlayer = pluginInterface.GetIpcProvider<GameObject, object?>(IpcManager.UnregisterPlayerIdentifier);
 
-      RegisterPlayer.Subscribe((gameObject, offset) =>
+      RegisterPlayer.RegisterAction((gameObject, offset) =>
       {
         memory.PlayerOffsets[gameObject] = offset;
       });
 
-      UnregisterPlayer.Subscribe((gameObject) =>
+      UnregisterPlayer.RegisterAction((gameObject) =>
       {
         memory.PlayerOffsets.Remove(gameObject);
       });
