@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -13,6 +14,9 @@ namespace HeelsPlugin
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public unsafe delegate void PlayerMovementDelegate(IntPtr player);
     public readonly Hook<PlayerMovementDelegate> playerMovementHook;
+    public Dictionary<string, float> PlayerOffsets = new();
+
+    private float? lastOffset = null;
 
     public PluginMemory()
     {
@@ -40,7 +44,7 @@ namespace HeelsPlugin
 
     private ConfigModel? GetConfigForModelId(EquipItem inModel)
     {
-      var foundConfig = Plugin.Configuration.Configs.Where(config =>
+      var foundConfig = Plugin.Configuration?.Configs.Where(config =>
       {
         var valid = false;
         if (config.ModelMain > 0)
@@ -55,7 +59,7 @@ namespace HeelsPlugin
       });
 
       // return the last one in the list
-      if (foundConfig.Any())
+      if (foundConfig != null && foundConfig.Any())
         return foundConfig.Last();
 
       return null;
@@ -79,7 +83,7 @@ namespace HeelsPlugin
       return new EquipItem(feet);
     }
 
-    private bool IsConfigValidForActor(IntPtr player, ConfigModel config)
+    private bool IsConfigValidForActor(IntPtr player, ConfigModel? config)
     {
       // create game object from pointer
       var gameObject = Plugin.ObjectTable.CreateObjectReference(player);
@@ -98,6 +102,14 @@ namespace HeelsPlugin
       return false;
     }
 
+    public float GetPlayerOffset()
+    {
+      var feet = GetPlayerFeet();
+      var config = GetConfigForModelId(feet);
+
+      return config?.Offset ?? 0;
+    }
+
     public unsafe void PlayerMove(IntPtr player)
     {
       try
@@ -109,10 +121,35 @@ namespace HeelsPlugin
         // Check config and set position
         if (IsConfigValidForActor(player, config))
           SetPosition(config.Offset, player.ToInt64());
+
+        ProcessPlayers(player);
       }
       catch (Exception ex)
       {
         PluginLog.LogError(ex, $"Error while moving with player {player.ToInt64():X}");
+      }
+    }
+
+    private void ProcessPlayer(IntPtr player)
+    {
+      var feet = GetPlayerFeet(player);
+      var config = GetConfigForModelId(feet);
+
+      if (lastOffset != config?.Offset && config?.Offset != null)
+        Plugin.Ipc?.OnOffsetChange(config.Offset);
+      lastOffset = config?.Offset;
+    }
+
+    private void ProcessPlayers(IntPtr player)
+    {
+      if (player == Plugin.ObjectTable[0].Address)
+        ProcessPlayer(player);
+      else
+      {
+        var playerObject = Plugin.ObjectTable.CreateObjectReference(player);
+        var key = playerObject.Name.TextValue;
+        if (PlayerOffsets.ContainsKey(key))
+          SetPosition(PlayerOffsets[key], player.ToInt64());
       }
     }
 

@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Ipc;
 using System;
 
 namespace HeelsPlugin
@@ -23,16 +24,19 @@ namespace HeelsPlugin
 
     private const string commandName = "/xlheels";
 
-    public static Configuration Configuration;
-    public static PluginMemory Memory;
+    public static Configuration? Configuration;
+    public static PluginMemory? Memory;
+    public static IpcManager? Ipc;
     private readonly PluginUI ui;
 
     public Plugin()
     {
       Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-
       Memory = new();
+      Ipc = new();
       ui = new();
+
+      ClientState.TerritoryChanged += (_, __) => Memory.PlayerOffsets.Clear();
 
       CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
       {
@@ -45,7 +49,8 @@ namespace HeelsPlugin
     public void Dispose()
     {
       // Dispose for stuff in Plugin Memory class.
-      Memory.Dispose();
+      Memory?.Dispose();
+      Ipc?.Dispose();
 
       CommandManager.RemoveHandler(commandName);
 

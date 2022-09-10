@@ -1,5 +1,4 @@
-﻿using Dalamud.Interface.Components;
-using Dalamud.Logging;
+﻿using Dalamud.Logging;
 using HeelsPlugin.Gui;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
