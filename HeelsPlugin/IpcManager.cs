@@ -9,7 +9,7 @@ namespace HeelsPlugin
   {
     private static readonly string API_VERSION = "1.0.0";
 
-    public static readonly string ApiVersionIdentifier = "HeelsPluginApiVersion";
+    public static readonly string ApiVersionIdentifier = "HeelsPlugin.ApiVersion";
     public static readonly string GetOffsetIdentifier = "HeelsPlugin.GetOffset";
     public static readonly string OffsetChangedIdentifier = "HeelsPlugin.OffsetChanged";
     public static readonly string RegisterPlayerIdentifier = "HeelsPlugin.RegisterPlayer";
