@@ -7,7 +7,7 @@ namespace HeelsPlugin
 {
   public class IpcManager : IDisposable
   {
-    private static readonly string API_VERSION = "1.0.0";
+    private static readonly string API_VERSION = "1.0.1";
 
     public static readonly string ApiVersionIdentifier = "HeelsPlugin.ApiVersion";
     public static readonly string GetOffsetIdentifier = "HeelsPlugin.GetOffset";
