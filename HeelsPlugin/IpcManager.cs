@@ -1,31 +1,46 @@
 using System;
-using Dalamud.Logging;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 
 namespace HeelsPlugin
 {
   public class IpcManager : IDisposable
   {
+    private static readonly string API_VERSION = "1.0.0";
+
+    public static readonly string ApiVersionIdentifier = "HeelsPluginApiVersion";
     public static readonly string GetOffsetIdentifier = "HeelsPlugin.GetOffset";
     public static readonly string OffsetChangedIdentifier = "HeelsPlugin.OffsetChanged";
-    public static readonly string RegisterActorIdentifier = "HeelsPlugin.RegisterActor";
+    public static readonly string RegisterPlayerIdentifier = "HeelsPlugin.RegisterPlayer";
+    public static readonly string UnregisterPlayerIdentifier = "HeelsPlugin.UnregisterPlayer";
 
+    private ICallGateProvider<string>? ApiVersion;
     private ICallGateProvider<float>? GetOffset;
     private ICallGateProvider<float, object?>? OffsetUpdate;
-    private ICallGateSubscriber<string, float, object?>? RegisterActor;
+    private ICallGateSubscriber<GameObject, float, object?>? RegisterPlayer;
+    private ICallGateSubscriber<GameObject, object?>? UnregisterPlayer;
 
-    public IpcManager()
+    public IpcManager(DalamudPluginInterface pluginInterface, PluginMemory memory)
     {
-      GetOffset = Plugin.PluginInterface.GetIpcProvider<float>(IpcManager.GetOffsetIdentifier);
-      OffsetUpdate = Plugin.PluginInterface.GetIpcProvider<float, object?>(IpcManager.OffsetChangedIdentifier);
-      RegisterActor = Plugin.PluginInterface.GetIpcSubscriber<string, float, object?>(IpcManager.RegisterActorIdentifier);
+      ApiVersion = pluginInterface.GetIpcProvider<string>(ApiVersionIdentifier);
+      GetOffset = pluginInterface.GetIpcProvider<float>(IpcManager.GetOffsetIdentifier);
+      OffsetUpdate = pluginInterface.GetIpcProvider<float, object?>(IpcManager.OffsetChangedIdentifier);
+      RegisterPlayer = pluginInterface.GetIpcSubscriber<GameObject, float, object?>(IpcManager.RegisterPlayerIdentifier);
+      UnregisterPlayer = pluginInterface.GetIpcSubscriber<GameObject, object?>(IpcManager.UnregisterPlayerIdentifier);
 
-      RegisterActor.Subscribe((name, offset) =>
+      RegisterPlayer.Subscribe((gameObject, offset) =>
       {
-        Plugin.Memory.PlayerOffsets[name] = offset;
+        memory.PlayerOffsets[gameObject] = offset;
       });
 
-      GetOffset.RegisterFunc(() => Plugin.Memory?.GetPlayerOffset() ?? 0);
+      UnregisterPlayer.Subscribe((gameObject) =>
+      {
+        memory.PlayerOffsets.Remove(gameObject);
+      });
+
+      ApiVersion.RegisterFunc(() => API_VERSION);
+      GetOffset.RegisterFunc(memory.GetPlayerOffset);
     }
 
     public void OnOffsetChange(float offset)
@@ -35,6 +50,7 @@ namespace HeelsPlugin
 
     public void Dispose()
     {
+      ApiVersion?.UnregisterFunc();
       GetOffset?.UnregisterFunc();
     }
   }

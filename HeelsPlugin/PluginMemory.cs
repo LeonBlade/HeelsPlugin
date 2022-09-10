@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using System;
@@ -14,7 +15,7 @@ namespace HeelsPlugin
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public unsafe delegate void PlayerMovementDelegate(IntPtr player);
     public readonly Hook<PlayerMovementDelegate> playerMovementHook;
-    public Dictionary<string, float> PlayerOffsets = new();
+    public Dictionary<GameObject, float> PlayerOffsets = new();
 
     private float? lastOffset = null;
 
@@ -147,9 +148,8 @@ namespace HeelsPlugin
       else
       {
         var playerObject = Plugin.ObjectTable.CreateObjectReference(player);
-        var key = playerObject.Name.TextValue;
-        if (PlayerOffsets.ContainsKey(key))
-          SetPosition(PlayerOffsets[key], player.ToInt64());
+        if (playerObject != null && PlayerOffsets.ContainsKey(playerObject))
+          SetPosition(PlayerOffsets[playerObject], player.ToInt64());
       }
     }
 
