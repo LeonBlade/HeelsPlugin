@@ -52,6 +52,8 @@ namespace HeelsPlugin
     {
       ApiVersion?.UnregisterFunc();
       GetOffset?.UnregisterFunc();
+      RegisterPlayer?.UnregisterAction();
+      UnregisterPlayer?.UnregisterAction();
     }
   }
 }
