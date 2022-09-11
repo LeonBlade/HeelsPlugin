@@ -133,6 +133,15 @@ namespace HeelsPlugin.Gui
       }
     }
 
+    private bool DrawIconButton(int id, FontAwesomeIcon icon)
+    {
+      ImGui.PushFont(UiBuilder.IconFont);
+      var clicked = ImGui.Button($"{icon.ToIconString()}##{id}");
+      ImGui.PopFont();
+
+      return clicked;
+    }
+
     public void Draw()
     {
       try
@@ -159,8 +168,10 @@ namespace HeelsPlugin.Gui
         ImGui.TableNextColumn();
         ImGui.BeginGroup();
 
+        var configHash = config.GetHashCode();
+
         // Eyedrop button
-        if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.EyeDropper))
+        if (DrawIconButton(Key, FontAwesomeIcon.EyeDropper))
         {
           var feetPics = Plugin.Memory.GetPlayerFeetItem();
           if (feetPics.HasValue)
@@ -188,7 +199,7 @@ namespace HeelsPlugin.Gui
         // Filter
         ImGui.TableNextColumn();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (4 * fontScale));
-        if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.Filter))
+        if (DrawIconButton(Key, FontAwesomeIcon.Filter))
           ImGui.OpenPopup($"Filter##{config.GetHashCode()}");
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Set a filter for who this config works for");
 
@@ -204,7 +215,7 @@ namespace HeelsPlugin.Gui
         // Delete
         ImGui.TableNextColumn();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (11 * fontScale));
-        if (ImGuiComponents.IconButton(Key, FontAwesomeIcon.TrashAlt))
+        if (DrawIconButton(Key, FontAwesomeIcon.TrashAlt))
         {
           config.Enabled = false;
           OnDelete?.Invoke(key);

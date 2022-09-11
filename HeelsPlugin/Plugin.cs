@@ -38,10 +38,12 @@ namespace HeelsPlugin
 
       CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
       {
-        HelpMessage = "Specify a float value to offset your character from the ground. Use 0 or off to disable. No arguments will provide a config menu."
+        HelpMessage = "Specify a float value to offset your character from the ground. Use 0 or off to disable. No arguments will provide a config menu.",
+        ShowInHelp = true
       });
 
       PluginInterface.UiBuilder.Draw += DrawUI;
+      PluginInterface.UiBuilder.OpenConfigUi += OpenConfig;
       ClientState.TerritoryChanged += (_, __) => Memory.PlayerOffsets.Clear();
     }
 
@@ -53,12 +55,20 @@ namespace HeelsPlugin
 
       CommandManager.RemoveHandler(commandName);
 
+      PluginInterface.UiBuilder.Draw -= DrawUI;
+      PluginInterface.UiBuilder.OpenConfigUi -= OpenConfig;
+
       GC.SuppressFinalize(this);
     }
 
     private void OnCommand(string command, string args)
     {
       ui.Visible = !ui.Visible;
+    }
+
+    private void OpenConfig()
+    {
+      ui.Visible = true;
     }
 
     private void DrawUI()
