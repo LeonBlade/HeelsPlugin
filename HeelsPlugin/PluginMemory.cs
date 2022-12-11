@@ -40,9 +40,8 @@ namespace HeelsPlugin
           playerMovementHook?.Dispose();
         }
       }
-      catch (Exception ex)
+      catch
       {
-        PluginLog.LogError(ex, "Error while calling PluginMemory.Dispose()");
       }
     }
 
@@ -166,9 +165,8 @@ namespace HeelsPlugin
             SetPosition(config.Offset, player);
         }
       }
-      catch (Exception ex)
+      catch
       {
-        PluginLog.LogError(ex, $"Error while moving with player {player.ToInt64():X}");
       }
     }
 

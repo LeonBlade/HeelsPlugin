@@ -44,9 +44,8 @@ namespace HeelsPlugin
           AddConfigLine();
         }
       }
-      catch (Exception ex)
+      catch
       {
-        PluginLog.Error(ex, "Failed to create PluginUI");
       }
     }
 
