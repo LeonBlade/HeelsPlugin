@@ -125,6 +125,9 @@ namespace HeelsPlugin.Gui
         for (var i = 0; i < sexValues.Length; i++)
           DrawModalCheckbox(sexValues[i].ToString(), sexValues[i], (isChecked) => config.SexFilter ^= sexValues[i]);
 
+        ImGui.Separator();
+        DrawModalCheckbox("Self Only", config.SelfOnly, (isChecked) => config.SelfOnly = isChecked);
+
         ImGui.Spacing();
 
         if (ImGui.Button("Close"))

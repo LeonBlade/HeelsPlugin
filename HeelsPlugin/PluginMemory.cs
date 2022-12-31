@@ -103,6 +103,7 @@ namespace HeelsPlugin
 
     private bool IsConfigValidForActor(IntPtr player, ConfigModel? config)
     {
+      if (config is { SelfOnly: true } && player != PlayerSelf.Address) return false;
       // create game object from pointer
       var gameObject = Plugin.ObjectTable.CreateObjectReference(player);
       var character = CharacterFactory.Convert(gameObject);
