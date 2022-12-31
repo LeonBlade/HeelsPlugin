@@ -6,6 +6,9 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Dalamud.Game.Gui;
 
 namespace HeelsPlugin
 {
@@ -18,6 +21,7 @@ namespace HeelsPlugin
     [PluginService] public static ObjectTable ObjectTable { get; private set; } = null!;
     [PluginService] public static DataManager Data { get; private set; } = null!;
     [PluginService] public static ClientState ClientState { get; private set; } = null!;
+    [PluginService] public static ChatGui ChatGui { get; private set; } = null!;
 
     public string Name => "Heels Plugin";
 
@@ -38,7 +42,7 @@ namespace HeelsPlugin
 
       CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
       {
-        HelpMessage = "Specify a float value to offset your character from the ground. Use 0 or off to disable. No arguments will provide a config menu.",
+        HelpMessage = $"Open the {Name} configuration window. Use '{commandName} help' for more options.",
         ShowInHelp = true
       });
 
@@ -63,6 +67,69 @@ namespace HeelsPlugin
 
     private void OnCommand(string command, string args)
     {
+      var arg = Regex.Matches(args, @"[\""].+?[\""]|[^ ]+").Select(m =>
+      {
+        if (m.Value.StartsWith('"') && m.Value.EndsWith('"'))
+        {
+          return m.Value.Substring(1, m.Value.Length - 2);
+        }
+
+        return m.Value;
+      }).ToArray();
+      
+      void ApplyAction(string nameCondition, Action<ConfigModel> action)
+      {
+        var c = 0;
+        if (nameCondition.StartsWith('/') && nameCondition.EndsWith('/'))
+        {
+          var regexStr = nameCondition.Substring(1, nameCondition.Length - 2);
+          var regex = new Regex(regexStr);
+          foreach (var e in Configuration.Configs.Where(e => regex.IsMatch(e.Name)))
+          {
+            action(e);
+            c++;
+          }
+        }
+        else
+        {
+          foreach (var e in Configuration.Configs.Where(e => e.Name == nameCondition))
+          {
+            action(e);
+            c++;
+          }
+        }
+
+        if (c == 0)
+          ChatGui.PrintError($"[{Name}] No config entries found matching '{nameCondition}'.");
+        else {
+          Configuration.Save();
+          Memory.RestorePlayerY();
+        }
+      }
+      
+      if (arg.Length > 0)
+      {
+        switch (arg[0].ToLowerInvariant())
+        {
+          case "config": break;
+          case "toggle" when arg.Length >= 2:
+            ApplyAction(arg[1], c => c.Enabled = !c.Enabled);
+            return;
+          case "enable" when arg.Length >= 2:
+            ApplyAction(arg[1], c => c.Enabled = true);
+            return;
+          case "disable" when arg.Length >= 2:
+            ApplyAction(arg[1], c => c.Enabled = false);
+            return;
+          default:
+            ChatGui.Print($"{commandName} - Open the config window.");
+            ChatGui.Print($"{commandName} toggle [name] - Toggle the config entry with the given name.");
+            ChatGui.Print($"{commandName} enable [name] - Enable the config entry with the given name.");
+            ChatGui.Print($"{commandName} disable [name] - Disable the config entry with the given name.");
+            return;
+        }
+      }
+      
       ui.Visible = !ui.Visible;
     }
 
