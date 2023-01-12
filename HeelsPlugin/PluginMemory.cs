@@ -189,7 +189,7 @@ namespace HeelsPlugin
     {
       try
       {
-        var modelPtr = Marshal.ReadInt64(actor, 0xF0);
+        var modelPtr = Marshal.ReadInt64(actor, 0x100);
         if (modelPtr == 0)
           return (IntPtr.Zero, Vector3.Zero);
         var positionPtr = new IntPtr(modelPtr + 0x50);
