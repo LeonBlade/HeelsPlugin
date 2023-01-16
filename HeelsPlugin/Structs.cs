@@ -61,7 +61,7 @@ namespace HeelsPlugin
     Miqote = 8,
     Roegadyn = 16,
     AuRa = 32,
-    Viera = 64,
-    Hrothgar = 128
+    Hrothgar = 64,
+    Viera = 128
   }
 }

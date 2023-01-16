@@ -112,7 +112,7 @@ namespace HeelsPlugin
         return false;
 
       // get the race and sex of character for filtering on config
-      var race = (Races)Math.Pow(character.Customize[(int)CustomizeIndex.Race], 2);
+      var race = (Races)(1 << character.Customize[(int)CustomizeIndex.Race] - 1);
       var sex = (Sexes)character.Customize[(int)CustomizeIndex.Gender] + 1;
 
       var containsRace = (config?.RaceFilter & race) == race;
