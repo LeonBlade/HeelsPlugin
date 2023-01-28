@@ -139,8 +139,8 @@ namespace HeelsPlugin
 
           foreach (var config in configs)
             config.Value.Draw();
+          ImGui.EndTable();
         }
-        ImGui.EndTable();
         ImGui.EndChild();
         ImGui.PopStyleVar();
       }
