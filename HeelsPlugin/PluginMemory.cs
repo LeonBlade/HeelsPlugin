@@ -147,6 +147,7 @@ namespace HeelsPlugin
         {
           var playerObject = Plugin.ObjectTable.CreateObjectReference(player);
 
+          if (playerObject.ObjectIndex >= 200) return;
           // check against dictionary created from IPC
           if (playerObject != null && PlayerOffsets.ContainsKey(playerObject))
           {
