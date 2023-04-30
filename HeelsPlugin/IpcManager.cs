@@ -32,6 +32,7 @@ namespace HeelsPlugin
       RegisterPlayer.RegisterAction((gameObject, offset) =>
       {
         memory.PlayerOffsets[gameObject] = offset;
+        memory.SetPosition(gameObject.Position.Y + offset, gameObject.Address, true);
       });
 
       UnregisterPlayer.RegisterAction((gameObject) =>
