@@ -97,7 +97,7 @@ namespace HeelsPlugin
       if (!player.HasValue)
         return null;
 
-      var feet = (uint)Marshal.ReadInt32(player.Value + 0x818 + 0x10);
+      var feet = (uint)Marshal.ReadInt32(player.Value + 0x830 + 0x10);
       return new EquipItem(feet);
     }
 
