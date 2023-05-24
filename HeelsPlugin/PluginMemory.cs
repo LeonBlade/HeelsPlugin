@@ -1,12 +1,11 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
-using Dalamud.Logging;
-using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using SCharacter = FFXIVClientStructs.FFXIV.Client.Game.Character.Character;
 
 namespace HeelsPlugin
 {
@@ -101,22 +100,25 @@ namespace HeelsPlugin
       return new EquipItem(feet);
     }
 
-    private bool IsConfigValidForActor(IntPtr player, ConfigModel? config)
+    private unsafe bool IsConfigValidForActor(IntPtr player, ConfigModel? config)
     {
       if (config is { SelfOnly: true } && player != PlayerSelf.Address) return false;
       // create game object from pointer
-      var gameObject = Plugin.ObjectTable.CreateObjectReference(player);
-      var character = CharacterFactory.Convert(gameObject);
+      var character = (SCharacter*)player;
 
-      if (character == null || character.ModelType() != 0)
-        return false;
+      if (character == null) return false;
+
+      var customize = character->DrawData.CustomizeData;
 
       // get the race and sex of character for filtering on config
-      var race = (Races)(1 << character.Customize[(int)CustomizeIndex.Race] - 1);
-      var sex = (Sexes)character.Customize[(int)CustomizeIndex.Gender] + 1;
+      var race = (Races)(1 << customize[(int)CustomizeIndex.Race] - 1);
+      var sex = (Sexes)customize[(int)CustomizeIndex.Gender] + 1;
 
       var containsRace = (config?.RaceFilter & race) == race;
       var containsSex = (config?.SexFilter & sex) == sex;
+
+      if (character->Mode == SCharacter.CharacterModes.InPositionLoop && character->ModeParam is 1 or 2 or 3) return false;
+      if (character->Mode == SCharacter.CharacterModes.EmoteLoop && character->ModeParam is 21) return false;
 
       if (config != null && config.Enabled && containsRace && containsSex)
         return true;
@@ -147,7 +149,6 @@ namespace HeelsPlugin
         {
           var playerObject = Plugin.ObjectTable.CreateObjectReference(player);
 
-          if (playerObject.ObjectIndex >= 200) return;
           // check against dictionary created from IPC
           if (playerObject != null && PlayerOffsets.ContainsKey(playerObject))
           {
